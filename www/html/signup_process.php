@@ -3,7 +3,12 @@ require_once '../conf/const.php';
 require_once MODEL_PATH . 'functions.php';
 require_once MODEL_PATH . 'user.php';
 
+header('X-FRAME-OPTIONS: DENY'); 
 session_start();
+
+if (is_valid_csrf_token(get_post('csrf_token')) === false){
+  redirect_to(LOGOUT_URL);
+}
 
 if(is_logined() === true){
   redirect_to(HOME_URL);
