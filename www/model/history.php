@@ -69,17 +69,13 @@ function get_admin_user_history($db){
 function get_history_details($db, $order_id){
   $sql = "
     SELECT
-    history_details.order_id,
-    history_details.item_id,
-    history_details.amount,
-    items.name,
-    items.price
+      order_id,
+      item_id,
+      amount,
+      name,
+      price
     FROM
       history_details
-    INNER JOIN
-      items
-    ON
-      history_details.item_id=items.item_id
     WHERE
       order_id = ?
   ";
