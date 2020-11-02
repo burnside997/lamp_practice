@@ -105,7 +105,13 @@ function purchase_carts($db, $carts){
   if(validate_cart_purchase($carts) === false){
     return false;
   }
+  $db->beginTransaction();
+  
+  insert_history($db, $carts[0]['user_id']);
+  $order_id = $db->lastInsertId();
+
   foreach($carts as $cart){
+    insert_history_details($db, $order_id, $cart['item_id'], $cart['name'], $cart['price'],$cart['amount']);
     if(update_item_stock(
         $db, 
         $cart['item_id'], 
@@ -116,6 +122,12 @@ function purchase_carts($db, $carts){
   }
   
   delete_user_carts($db, $carts[0]['user_id']);
+
+  if(has_error() === false){
+    $db->commit();
+  } else{
+    $db->rollback();
+  }
 }
 
 function delete_user_carts($db, $user_id){
@@ -157,3 +169,28 @@ function validate_cart_purchase($carts){
   return true;
 }
 
+function insert_history($db, $user_id){
+  $sql = "
+    INSERT INTO
+      history(
+          user_id
+        )
+      VALUES(?);
+  ";
+  return execute_query($db, $sql, array($user_id));
+}
+
+function insert_history_details($db, $order_id, $item_id, $name, $price, $amount){
+  $sql = "
+    INSERT INTO
+      history_details(
+          order_id,
+          item_id,
+          name,
+          price,
+          amount
+        )
+      VALUES(?, ?, ?, ?, ?);
+  ";
+  return execute_query($db, $sql, array($order_id, $item_id, $name, $price, $amount));
+}
